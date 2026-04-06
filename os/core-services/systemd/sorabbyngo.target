@@ -1,0 +1,4 @@
+[Unit]
+Description=SORABBYNGO OS Services
+Requires=sorabbyngo-nodeid.service sorabbyngo-nats.service
+After=sorabbyngo-nodeid.service sorabbyngo-nats.service

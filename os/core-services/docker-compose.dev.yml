@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  nats:
+    image: nats:2.10-alpine
+    container_name: sorabbyngo-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: -js -sd /data -m 8222 -n sorabbyngo-dev-node
+    volumes:
+      - nats_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    container_name: sorabbyngo-surrealdb
+    ports:
+      - "8000:8000"
+    command: start --log debug --user root --pass sorabbyngo file:/data/sorabbyngo.db
+    volumes:
+      - surrealdb_data:/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: sorabbyngo-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: sorabbyngo
+      POSTGRES_PASSWORD: sorabbyngo_dev
+      POSTGRES_DB: novela
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: sorabbyngo-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  nats_data:
+  surrealdb_data:
+  postgres_data:

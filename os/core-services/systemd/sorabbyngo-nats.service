@@ -1,0 +1,16 @@
+[Unit]
+Description=SORABBYNGO NATS Message Bus
+After=network.target sorabbyngo-nodeid.service
+Before=sorabbyngo-byngox.service sorabbyngo-novela.service sorabbyngo-chameha.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/mkdir -p /var/lib/sorabbyngo/nats /var/log/sorabbyngo
+ExecStart=/usr/local/bin/nats-server -c /etc/sorabbyngo/nats/nats-server.conf
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=/run/sorabbyngo/nodeid.env
+SyslogIdentifier=sorabbyngo-nats
+
+[Install]
+WantedBy=sorabbyngo.target
