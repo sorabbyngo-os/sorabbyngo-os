@@ -1,0 +1,54 @@
+# ============================================================
+# Sorabbyngo STAGING Environment
+# Production mirror — full hardening, pre-release validation
+# ============================================================
+extends: "../base/config.yaml"
+
+environment: staging
+
+kernel:
+  hardening: true
+  ptrace_scope: 2
+  kptr_restrict: 2
+  aslr: 2
+  dmesg_restrict: 1
+  sysrq: 0
+
+security:
+  apparmor: true
+  seccomp: true
+  audit_log: "/var/log/sorabbyngo/staging_audit.jsonl"
+
+nats:
+  url: "nats://localhost:4222"
+  tls: true
+  cert: "/etc/sorabbyngo/tls/nats.crt"
+  key:  "/etc/sorabbyngo/tls/nats.key"
+
+services:
+  sentinel: true
+  cyberwall: true
+  byngox: true
+  chameha: true
+  novela: true
+  byngonet: true
+
+ai:
+  tier: 2
+  models:
+    tier1:
+      - "phi4-mini"
+      - "smollm2:360m"
+    tier2:
+      - "phi4:14b"
+      - "gemma3:4b"
+
+logging:
+  level: "INFO"
+  audit_chain: true
+  max_size_mb: 500
+
+network:
+  offline_first: true
+  mesh: true
+  firewall: true

@@ -1,0 +1,61 @@
+# ============================================================
+# Sorabbyngo Base Environment Config
+# All environments inherit and override from this
+# ============================================================
+
+sorabbyngo:
+  version: "0.1.0"
+  organization: "Sorabbyngo Labs"
+  location: "Kisii, Kenya"
+
+kernel:
+  hardening: true
+  sysctl_profile: "hardening/kernel/sysctl-hardening.conf"
+  module_blacklist: "hardening/kernel/modules-blacklist.conf"
+  aslr: 2
+  ptrace_scope: 2
+  kptr_restrict: 2
+  dmesg_restrict: 1
+
+security:
+  apparmor: true
+  seccomp: true
+  selinux: false          # SELinux or AppArmor, not both
+  seccomp_profile: "hardening/seccomp/sorabbyngo-base.json"
+  audit_log: "/var/log/sorabbyngo/sentinel_audit.jsonl"
+
+nats:
+  url: "nats://localhost:4222"
+  config: "nats/sorabbyngo.conf"
+  tls: false              # Overridden in staging/prod
+
+services:
+  sentinel: true
+  cyberwall: true
+  byngox: false           # Overridden per environment
+  chameha: false
+  novela: false
+  byngonet: false
+
+ai:
+  tier: 1                 # Default to tier 1 (offline, 4-8GB RAM)
+  ollama_host: "http://localhost:11434"
+  models:
+    tier1:
+      - "phi4-mini"
+      - "smollm2:360m"
+    tier2: []
+    tier3: []
+    tier4: []
+
+logging:
+  level: "INFO"
+  dir: "/var/log/sorabbyngo"
+  audit_chain: true
+  max_size_mb: 100
+  rotate: true
+
+network:
+  offline_first: true
+  mesh: false             # Byngonet mesh (enabled per environment)
+  firewall: true

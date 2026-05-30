@@ -1,0 +1,42 @@
+# ============================================================
+# AppArmor profile — byngo-agent
+# ============================================================
+#include <tunables/global>
+
+profile sorabbyngo-byngo-agent /usr/local/bin/byngo-agent {
+  #include <abstractions/base>
+
+  # Binary
+  /usr/local/bin/byngo-agent mr,
+
+  # Read-only scan targets
+  /usr/bin/** r,
+  /usr/sbin/** r,
+  /bin/** r,
+  /sbin/** r,
+  /opt/sorabbyngo/** r,
+
+  # Quarantine directory
+  /home/*/.byngo/quarantine/ rw,
+  /home/*/.byngo/quarantine/** rw,
+
+  # Logs
+  /var/log/sorabbyngo/ rw,
+  /var/log/sorabbyngo/** rw,
+
+  # Proc — read only for analysis
+  /proc/*/maps r,
+  /proc/*/status r,
+  /proc/*/cmdline r,
+
+  # Deny network (agent is local only)
+  deny network,
+
+  # Deny dangerous ops
+  deny ptrace,
+  deny /etc/shadow r,
+  deny /root/** rwx,
+  deny capability sys_admin,
+  deny capability sys_ptrace,
+  deny capability sys_module,
+}

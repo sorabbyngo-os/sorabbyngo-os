@@ -1,0 +1,77 @@
+# ============================================================
+# Sorabbyngo SELinux Type Enforcement Policy
+# ============================================================
+
+policy_module(sorabbyngo, 1.0.0)
+
+########################################
+# Types
+########################################
+
+# Sentinel daemon
+type sorabbyngo_sentinel_t;
+type sorabbyngo_sentinel_exec_t;
+init_daemon_domain(sorabbyngo_sentinel_t, sorabbyngo_sentinel_exec_t)
+
+# Byngo agent
+type sorabbyngo_agent_t;
+type sorabbyngo_agent_exec_t;
+init_daemon_domain(sorabbyngo_agent_t, sorabbyngo_agent_exec_t)
+
+# Log files
+type sorabbyngo_log_t;
+logging_log_file(sorabbyngo_log_t)
+
+# Data files (nodeid, audit ledger)
+type sorabbyngo_data_t;
+files_type(sorabbyngo_data_t)
+
+# Quarantine directory
+type sorabbyngo_quarantine_t;
+files_type(sorabbyngo_quarantine_t)
+
+########################################
+# Sentinel permissions
+########################################
+
+# Read/write logs
+allow sorabbyngo_sentinel_t sorabbyngo_log_t:file { read write append create };
+allow sorabbyngo_sentinel_t sorabbyngo_log_t:dir { write add_name };
+
+# Read NodeID
+allow sorabbyngo_sentinel_t sorabbyngo_data_t:file { read getattr };
+
+# Network — NATS only
+allow sorabbyngo_sentinel_t self:tcp_socket { create connect read write };
+corenet_tcp_connect_generic_port(sorabbyngo_sentinel_t)
+
+# Signal handling
+allow sorabbyngo_sentinel_t self:process { signal sigkill };
+
+# Deny ptrace
+neverallow sorabbyngo_sentinel_t domain:process ptrace;
+
+########################################
+# Agent permissions
+########################################
+
+# Read system binaries for analysis
+allow sorabbyngo_agent_t bin_t:file { read getattr };
+allow sorabbyngo_agent_t usr_t:file { read getattr };
+
+# Write quarantine
+allow sorabbyngo_agent_t sorabbyngo_quarantine_t:file { create write rename };
+allow sorabbyngo_agent_t sorabbyngo_quarantine_t:dir { write add_name };
+
+# Write logs
+allow sorabbyngo_agent_t sorabbyngo_log_t:file { write append create };
+
+# Deny network
+neverallow sorabbyngo_agent_t self:tcp_socket create;
+neverallow sorabbyngo_agent_t self:udp_socket create;
+
+# Deny ptrace
+neverallow sorabbyngo_agent_t domain:process ptrace;
+
+# Deny module loading
+neverallow sorabbyngo_agent_t kernel_t:system module_load;

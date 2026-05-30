@@ -1,0 +1,8 @@
+# SORABBYNGO /etc/inittab
+# No login. Chameha is PID 1 on tty1.
+::sysinit:/etc/init.d/rcS
+tty1::respawn:/usr/bin/python3 /opt/sorabbyngo/chameha/first-boot/chameha_firstboot.py
+tty2::respawn:/bin/sh
+tty3::respawn:/bin/sh
+::shutdown:/bin/umount -a -r
+::shutdown:/sbin/swapoff -a

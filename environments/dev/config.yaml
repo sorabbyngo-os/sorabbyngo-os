@@ -1,0 +1,42 @@
+# ============================================================
+# Sorabbyngo DEV Environment
+# Local development — relaxed hardening, all services
+# ============================================================
+extends: "../base/config.yaml"
+
+environment: dev
+
+kernel:
+  ptrace_scope: 1         # Allow ptrace for debugging
+  dmesg_restrict: 0       # Allow dmesg for devs
+
+security:
+  apparmor: false         # Disabled in dev for flexibility
+  seccomp: false
+  audit_log: "/tmp/sorabbyngo/sentinel_audit.jsonl"
+
+nats:
+  url: "nats://localhost:4222"
+  tls: false
+
+services:
+  sentinel: true
+  cyberwall: true
+  byngox: true
+  chameha: true
+  novela: true
+  byngonet: false         # Mesh not needed in dev
+
+ai:
+  tier: 1
+  models:
+    tier1:
+      - "phi4-mini"
+      - "smollm2:360m"
+
+logging:
+  level: "DEBUG"
+
+network:
+  offline_first: false    # Dev allows internet
+  firewall: false

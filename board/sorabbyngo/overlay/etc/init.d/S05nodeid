@@ -1,0 +1,20 @@
+#!/bin/sh
+NODEID_FILE="/var/lib/sorabbyngo/nodeid"
+PROC_NODEID="/proc/sorabbyngo/nodeid"
+case "$1" in
+  start)
+    modprobe sorabbyngo_nodeid 2>/dev/null || true
+    modprobe byngonet_identity 2>/dev/null || true
+    mkdir -p /var/lib/sorabbyngo
+    if [ ! -f "$NODEID_FILE" ]; then
+      cat "$PROC_NODEID" > "$NODEID_FILE"
+      echo "sorabbyngo: NodeID sealed on first boot"
+    else
+      CURRENT=$(cat "$PROC_NODEID")
+      STORED=$(cat "$NODEID_FILE")
+      [ "$CURRENT" != "$STORED" ] && \
+        echo "sorabbyngo: WARNING NodeID mismatch, hardware may have changed"
+    fi
+    ;;
+  stop) ;;
+esac

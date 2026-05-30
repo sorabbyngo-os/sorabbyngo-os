@@ -1,0 +1,56 @@
+# ============================================================
+# Sorabbyngo SANDBOX Environment
+# Fully isolated — malware analysis, no persistence
+# ============================================================
+extends: "../base/config.yaml"
+
+environment: sandbox
+
+kernel:
+  hardening: true
+  ptrace_scope: 2
+  aslr: 2
+  kptr_restrict: 2
+
+security:
+  apparmor: true
+  seccomp: true
+  seccomp_profile: "hardening/seccomp/sorabbyngo-agent.json"
+  audit_log: "/tmp/sandbox_audit.jsonl"
+  no_persistence: true    # All writes go to tmpfs
+
+nats:
+  url: "nats://localhost:4222"
+  tls: false
+
+services:
+  sentinel: true
+  cyberwall: true
+  byngox: false
+  chameha: false
+  novela: false
+  byngonet: false
+  byngo_agent: true
+  byngo_detect: true
+  byngo_static: true
+
+ai:
+  tier: 1
+
+logging:
+  level: "DEBUG"
+  audit_chain: true
+  dir: "/tmp/sorabbyngo/logs"   # tmpfs — wiped on reboot
+
+network:
+  offline_first: true
+  mesh: false
+  firewall: true
+  egress_filter: true
+  block_all_egress: true  # Absolute network isolation
+
+sandbox:
+  auto_revert: true       # Revert to clean snapshot on shutdown
+  max_runtime_minutes: 60
+  quarantine_dir: "/tmp/sandbox/quarantine"
+  snapshot_on_start: true

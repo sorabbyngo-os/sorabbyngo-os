@@ -1,7 +1,13 @@
-__pycache__/
-*.py[cod]
-.env
-venv/
+chameha/chameha.log
 *.log
-nats_data/
-surrealdb_data/
+/tmp/
+
+# Policy signing keys — never commit
+policy/keys/policy.key
+**/__pycache__/
+*.pyc
+# Python
+__pycache__/
+*.pyc
+*.pyo
+sorabbyngo-os/

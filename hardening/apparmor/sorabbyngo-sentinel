@@ -1,0 +1,43 @@
+# ============================================================
+# AppArmor profile — sorabbyngo sentinel daemon
+# ============================================================
+#include <tunables/global>
+
+profile sorabbyngo-sentinel /usr/local/bin/sentinel_daemon.py flags=(attach_disconnected) {
+  #include <abstractions/base>
+  #include <abstractions/python>
+  #include <abstractions/nameservice>
+
+  # Sentinel binary
+  /usr/local/bin/sentinel_daemon.py r,
+  /usr/bin/python3* ix,
+
+  # Logs
+  /var/log/sorabbyngo/ rw,
+  /var/log/sorabbyngo/** rw,
+
+  # NodeID verification
+  /var/lib/sorabbyngo/nodeid r,
+  /proc/sorabbyngo/nodeid r,
+
+  # NATS socket
+  network tcp,
+
+  # Read system info
+  /proc/sys/kernel/hostname r,
+  /proc/uptime r,
+  /proc/loadavg r,
+  /proc/meminfo r,
+
+  # Python imports
+  /usr/lib/python3*/** r,
+  /usr/local/lib/python3*/** r,
+
+  # Deny everything else
+  deny /etc/shadow r,
+  deny /root/** rwx,
+  deny /home/** rwx,
+  deny network raw,
+  deny network packet,
+  deny ptrace,
+}

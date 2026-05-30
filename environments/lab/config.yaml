@@ -1,0 +1,55 @@
+# ============================================================
+# Sorabbyngo LAB Environment
+# Cyber playing field — isolated, all security tools active
+# ============================================================
+extends: "../base/config.yaml"
+
+environment: lab
+
+kernel:
+  hardening: true
+  ptrace_scope: 2
+  kptr_restrict: 2
+  aslr: 2
+
+security:
+  apparmor: true
+  seccomp: true
+  seccomp_profile: "hardening/seccomp/sorabbyngo-agent.json"
+  audit_log: "/var/log/sorabbyngo/lab_audit.jsonl"
+
+nats:
+  url: "nats://localhost:4222"
+  tls: false
+
+services:
+  sentinel: true
+  cyberwall: true
+  byngox: true
+  chameha: false
+  novela: false
+  byngonet: false
+
+  # Lab-specific tools
+  byngo_static: true
+  byngo_detect: true
+  byngo_net: true
+  byngo_agent: true
+
+ai:
+  tier: 1
+
+logging:
+  level: "DEBUG"
+  audit_chain: true
+
+network:
+  offline_first: true     # Lab is air-gapped
+  mesh: false
+  firewall: true
+
+lab:
+  quarantine_dir: "/var/lib/sorabbyngo/quarantine"
+  auto_quarantine: false  # Manual approval in lab
+  sample_dir: "/var/lib/sorabbyngo/samples"
+  report_dir: "/var/log/sorabbyngo/reports"

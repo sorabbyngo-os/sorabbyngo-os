@@ -1,0 +1,68 @@
+# ============================================================
+# Sorabbyngo PROD Environment
+# Full production — maximum hardening, all systems live
+# ============================================================
+extends: "../base/config.yaml"
+
+environment: prod
+
+kernel:
+  hardening: true
+  ptrace_scope: 3         # Maximum — no ptrace at all
+  kptr_restrict: 2
+  aslr: 2
+  dmesg_restrict: 1
+  sysrq: 0
+  unprivileged_bpf: false
+  bpf_jit_harden: 2
+
+security:
+  apparmor: true
+  seccomp: true
+  audit_log: "/var/log/sorabbyngo/prod_audit.jsonl"
+  nodeid_verify: true
+  tamper_response: "shutdown"   # Shutdown on NodeID mismatch
+
+nats:
+  url: "nats://localhost:4222"
+  tls: true
+  verify_peer: true
+  cert: "/etc/sorabbyngo/tls/nats.crt"
+  key:  "/etc/sorabbyngo/tls/nats.key"
+  ca:   "/etc/sorabbyngo/tls/ca.crt"
+
+services:
+  sentinel: true
+  cyberwall: true
+  byngox: true
+  chameha: true
+  novela: true
+  byngonet: true
+
+ai:
+  tier: 2
+  offline_only: true
+  models:
+    tier1:
+      - "phi4-mini"
+      - "smollm2:360m"
+      - "meditron:7b"
+      - "aya23:8b"
+    tier2:
+      - "phi4:14b"
+      - "gemma3:4b"
+      - "qwen2.5:7b"
+      - "aya23:35b"
+
+logging:
+  level: "WARNING"
+  audit_chain: true
+  max_size_mb: 1000
+  rotate: true
+  remote_syslog: false    # Air-gapped
+
+network:
+  offline_first: true
+  mesh: true
+  firewall: true
+  egress_filter: true     # Block unexpected outbound
