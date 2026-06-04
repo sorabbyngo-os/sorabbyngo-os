@@ -1,1 +1,0 @@
-/usr/bin/cc -fPIC -Wl,--dependency-file=CMakeFiles/sorabbyngo_shared.dir/link.d -shared -Wl,-soname,libsorabbyngo.so.0 -o libsorabbyngo.so.0.1.0 CMakeFiles/sorabbyngo_shared.dir/src/identity.c.o  -lsodium

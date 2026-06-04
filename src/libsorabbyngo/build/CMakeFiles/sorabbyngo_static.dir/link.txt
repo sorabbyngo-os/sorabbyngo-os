@@ -1,2 +1,0 @@
-/usr/bin/ar qc libsorabbyngo.a CMakeFiles/sorabbyngo_static.dir/src/identity.c.o
-/usr/bin/ranlib libsorabbyngo.a
