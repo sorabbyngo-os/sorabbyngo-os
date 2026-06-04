@@ -1,0 +1,14 @@
+# Sorabbyngo OS fstab
+# <device>          <mount>           <type>    <options>                      <dump> <pass>
+proc                /proc             proc      defaults                       0      0
+sysfs               /sys              sysfs     defaults                       0      0
+devtmpfs            /dev              devtmpfs  defaults                       0      0
+devpts              /dev/pts          devpts    defaults                       0      0
+tmpfs               /tmp              tmpfs     noexec,nosuid,nodev,size=128m  0      0
+tmpfs               /dev/shm          tmpfs     noexec,nosuid,nodev,size=64m   0      0
+tmpfs               /run              tmpfs     noexec,nosuid,nodev,size=32m   0      0
+# Persistent sorabbyngo state — survives reboots
+# /dev/sda2 is the data partition (sda1 = rootfs, sda2 = persistent)
+/dev/sda2           /var/lib/sorabbyngo ext4    defaults,noatime               0      2
+# Audit log — persistent, append-only mount
+/dev/sda2           /var/log/sorabbyngo ext4    defaults,noatime,noexec        0      2

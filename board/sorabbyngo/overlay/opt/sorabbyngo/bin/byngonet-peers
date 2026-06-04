@@ -1,0 +1,38 @@
+#!/bin/sh
+# byngonet-peers — manage the Byngonet NodeID peer allowlist
+# Usage: byngonet-peers add <nodeid>
+#        byngonet-peers remove <nodeid>
+#        byngonet-peers list
+#        byngonet-peers status
+PEERS_FILE="/proc/byngonet_peers"
+STATS_FILE="/proc/byngonet_stats"
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+[ -f "$PEERS_FILE" ] || die "Byngonet not loaded ($PEERS_FILE missing)"
+
+case "$1" in
+  add)
+    [ -z "$2" ] && die "Usage: byngonet-peers add <nodeid>"
+    echo "add $2" > "$PEERS_FILE" && echo "Added peer: $2" || die "Failed to add peer"
+    ;;
+  remove|rm)
+    [ -z "$2" ] && die "Usage: byngonet-peers remove <nodeid>"
+    echo "remove $2" > "$PEERS_FILE" && echo "Removed peer: $2" || die "Failed to remove peer"
+    ;;
+  list|ls)
+    echo "=== Byngonet peer allowlist ==="
+    cat "$PEERS_FILE"
+    ;;
+  status)
+    echo "=== Byngonet stats ==="
+    cat "$STATS_FILE" 2>/dev/null || echo "(stats not available)"
+    ;;
+  flush)
+    echo "flush" > "$PEERS_FILE" && echo "Peer list flushed" || die "Flush failed"
+    ;;
+  *)
+    echo "Usage: byngonet-peers {add|remove|list|status|flush}"
+    exit 1
+    ;;
+esac

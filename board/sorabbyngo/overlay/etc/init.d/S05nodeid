@@ -1,20 +1,75 @@
 #!/bin/sh
+# S05nodeid — Load NodeID driver, seal identity on first boot.
+# NodeID mismatch = HALT. All downstream services depend on this.
 NODEID_FILE="/var/lib/sorabbyngo/nodeid"
 PROC_NODEID="/proc/sorabbyngo/nodeid"
+LOG="/var/log/sorabbyngo/nodeid.log"
+
+mkdir -p /var/lib/sorabbyngo /var/log/sorabbyngo
+
+log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] nodeid: $*" | tee -a "$LOG"; }
+
 case "$1" in
   start)
-    modprobe sorabbyngo_nodeid 2>/dev/null || true
-    modprobe byngonet_identity 2>/dev/null || true
-    mkdir -p /var/lib/sorabbyngo
-    if [ ! -f "$NODEID_FILE" ]; then
-      cat "$PROC_NODEID" > "$NODEID_FILE"
-      echo "sorabbyngo: NodeID sealed on first boot"
-    else
-      CURRENT=$(cat "$PROC_NODEID")
-      STORED=$(cat "$NODEID_FILE")
-      [ "$CURRENT" != "$STORED" ] && \
-        echo "sorabbyngo: WARNING NodeID mismatch, hardware may have changed"
+    log "Loading NodeID driver..."
+    if ! modprobe sorabbyngo_nodeid 2>/dev/null; then
+        log "FATAL: sorabbyngo_nodeid module failed to load"
+        exit 1
     fi
+
+    # Wait up to 2s for /proc entry to appear
+    for i in 1 2 3 4; do
+        [ -f "$PROC_NODEID" ] && break
+        sleep 0.5
+    done
+    if [ ! -f "$PROC_NODEID" ]; then
+        log "FATAL: $PROC_NODEID not present after module load"
+        exit 1
+    fi
+
+    CURRENT=$(cat "$PROC_NODEID" | tr -d '[:space:]')
+    if [ -z "$CURRENT" ]; then
+        log "FATAL: NodeID is empty — hardware identity unavailable"
+        exit 1
+    fi
+
+    if [ ! -f "$NODEID_FILE" ]; then
+        # First boot — seal the NodeID
+        echo "$CURRENT" > "$NODEID_FILE"
+        chmod 640 "$NODEID_FILE"
+        chown root:sorabbyngo "$NODEID_FILE" 2>/dev/null || true
+        log "NodeID sealed on first boot: ${CURRENT:0:16}..."
+    else
+        STORED=$(cat "$NODEID_FILE" | tr -d '[:space:]')
+        if [ "$CURRENT" != "$STORED" ]; then
+            log "FATAL: NodeID MISMATCH — hardware tampered or replaced"
+            log "  stored:  ${STORED:0:16}..."
+            log "  current: ${CURRENT:0:16}..."
+            log "Halting system for security."
+            # Give log a moment to flush
+            sync
+            halt -f 2>/dev/null || reboot -f
+            exit 1
+        fi
+        log "NodeID verified: ${CURRENT:0:16}..."
+    fi
+
+    # Load Byngonet after NodeID is confirmed
+    modprobe byngonet 2>/dev/null && log "Byngonet loaded" || \
+        log "WARN: byngonet module not loaded (mesh disabled?)"
     ;;
-  stop) ;;
+
+  stop)
+    log "NodeID service stop (module stays resident)"
+    ;;
+
+  status)
+    [ -f "$PROC_NODEID" ] && echo "NodeID: $(cat $PROC_NODEID)" || echo "NodeID: not loaded"
+    [ -f "$NODEID_FILE" ] && echo "Sealed: yes" || echo "Sealed: no (first boot pending)"
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|status}"
+    exit 1
+    ;;
 esac
