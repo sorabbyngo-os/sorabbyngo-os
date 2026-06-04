@@ -1,0 +1,25 @@
+#!/bin/sh
+# S41chameha-voice — Chameha voice pipeline daemon
+DAEMON="/opt/sorabbyngo/chameha/voice/chameha_voice_daemon.py"
+PIDFILE="/var/run/sorabbyngo/chameha-voice.pid"
+LOGFILE="/var/log/sorabbyngo/chameha-voice.log"
+TIER="${AI_TIER:-1}"
+mkdir -p /var/run/sorabbyngo /var/log/sorabbyngo
+case "$1" in
+    start)
+        echo -n "Starting Chameha voice daemon... "
+        [ ! -f "$DAEMON" ] && echo "MISSING" && exit 1
+        python3 "$DAEMON" --tier "$TIER" >> "$LOGFILE" 2>&1 &
+        echo $! > "$PIDFILE"
+        echo "OK (pid=$(cat $PIDFILE))" ;;
+    stop)
+        echo -n "Stopping Chameha voice daemon... "
+        [ -f "$PIDFILE" ] && kill "$(cat $PIDFILE)" 2>/dev/null && rm -f "$PIDFILE"
+        echo "OK" ;;
+    restart) "$0" stop; sleep 1; "$0" start ;;
+    status)
+        [ -f "$PIDFILE" ] && kill -0 "$(cat $PIDFILE)" 2>/dev/null \
+            && echo "running (pid=$(cat $PIDFILE))" \
+            || { echo "not running"; exit 1; } ;;
+    *) echo "Usage: $0 {start|stop|restart|status}"; exit 1 ;;
+esac

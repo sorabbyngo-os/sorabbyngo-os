@@ -1,0 +1,10 @@
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/sorabbyngo_shared.dir
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/sorabbyngo_static.dir
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/test_identity.dir
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/test.dir
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/edit_cache.dir
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/rebuild_cache.dir
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/list_install_components.dir
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/install.dir
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/install/local.dir
+/home/sorabbyngo/sorabbyngo-os/src/libsorabbyngo/build/CMakeFiles/install/strip.dir

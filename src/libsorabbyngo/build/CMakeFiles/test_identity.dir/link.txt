@@ -1,0 +1,1 @@
+/usr/bin/cc -Wl,--dependency-file=CMakeFiles/test_identity.dir/link.d CMakeFiles/test_identity.dir/tests/test_identity.c.o -o test_identity  libsorabbyngo.a -lsodium
