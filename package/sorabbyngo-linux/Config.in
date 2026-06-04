@@ -1,0 +1,6 @@
+config BR2_PACKAGE_SORABBYNGO_LINUX
+	bool "sorabbyngo-linux"
+	default y
+	help
+	  Linux 6.19.10 with Sorabbyngo security patches (0001-0017),
+	  NodeID driver, and Byngonet mesh network driver.

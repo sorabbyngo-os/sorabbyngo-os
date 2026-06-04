@@ -1,0 +1,6 @@
+menu "Sorabbyngo OS packages"
+	source "$BR2_EXTERNAL_SORABBYNGO_PATH/package/sorabbyngo-sentinel/Config.in"
+	source "$BR2_EXTERNAL_SORABBYNGO_PATH/package/sorabbyngo-chameha/Config.in"
+	source "$BR2_EXTERNAL_SORABBYNGO_PATH/package/sorabbyngo-nats/Config.in"
+	source "$BR2_EXTERNAL_SORABBYNGO_PATH/package/sorabbyngo-linux/Config.in"
+endmenu

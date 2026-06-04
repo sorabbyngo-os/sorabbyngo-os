@@ -1,0 +1,3 @@
+# NodeID device — readable by sorabbyngo group only
+KERNEL=="nodeid", GROUP="sorabbyngo", MODE="0640"
+# Byngonet proc entries — created by driver, no udev needed

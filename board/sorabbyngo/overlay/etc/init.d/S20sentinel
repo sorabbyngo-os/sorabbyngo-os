@@ -1,0 +1,33 @@
+#!/bin/sh
+# S20sentinel — Start Sorabbyngo Sentinel daemon + watcher
+SENTINEL="/opt/sorabbyngo/sentinel/sentinel_daemon.py"
+WATCHER="/opt/sorabbyngo/sentinel/sentinel_watcher.py"
+PID_DAEMON="/var/run/sorabbyngo-sentinel.pid"
+PID_WATCHER="/var/run/sorabbyngo-watcher.pid"
+LOG="/var/log/sorabbyngo/sentinel.log"
+NATS_URL="nats://localhost:4222"
+mkdir -p /var/log/sorabbyngo
+
+case "$1" in
+    start)
+        echo -n "Starting Sorabbyngo Sentinel... "
+        [ ! -f "$SENTINEL" ] && echo "MISSING" && exit 1
+        python3 "$SENTINEL" --nats "$NATS_URL" >> "$LOG" 2>&1 &
+        echo $! > "$PID_DAEMON"
+        python3 "$WATCHER" >> "$LOG" 2>&1 &
+        echo $! > "$PID_WATCHER"
+        sleep 1
+        kill -0 "$(cat $PID_DAEMON)" 2>/dev/null && \
+            echo "OK (pid=$(cat $PID_DAEMON))" || { echo "FAILED — check $LOG"; exit 1; } ;;
+    stop)
+        echo -n "Stopping Sentinel... "
+        for f in "$PID_DAEMON" "$PID_WATCHER"; do
+            [ -f "$f" ] && kill "$(cat $f)" 2>/dev/null && rm -f "$f"
+        done
+        echo "OK" ;;
+    restart) "$0" stop; sleep 1; "$0" start ;;
+    status)
+        [ -f "$PID_DAEMON" ] && kill -0 "$(cat $PID_DAEMON)" 2>/dev/null && \
+            echo "Sentinel running (pid=$(cat $PID_DAEMON))" || { echo "not running"; exit 1; } ;;
+    *) echo "Usage: $0 {start|stop|restart|status}"; exit 1 ;;
+esac

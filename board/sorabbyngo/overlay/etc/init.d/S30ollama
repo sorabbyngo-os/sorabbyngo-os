@@ -1,0 +1,47 @@
+#!/bin/sh
+# S30ollama — Start Ollama + pull Tier 1 models on first boot
+OLLAMA_BIN="/usr/bin/ollama"
+OLLAMA_PID="/var/run/ollama.pid"
+OLLAMA_LOG="/var/log/sorabbyngo/ollama.log"
+OLLAMA_HOME="/var/lib/sorabbyngo/ollama"
+MODELS_READY="/var/lib/sorabbyngo/.ollama_models_ready"
+TIER1_MODELS="phi4-mini smollm2:360m"
+export OLLAMA_MODELS="$OLLAMA_HOME/models"
+export OLLAMA_HOME="$OLLAMA_HOME"
+mkdir -p "$OLLAMA_HOME/models" /var/log/sorabbyngo
+
+case "$1" in
+    start)
+        echo -n "Starting Ollama... "
+        if [ ! -x "$OLLAMA_BIN" ]; then
+            echo "MISSING — install ollama post-boot"; exit 0
+        fi
+        "$OLLAMA_BIN" serve >> "$OLLAMA_LOG" 2>&1 &
+        echo $! > "$OLLAMA_PID"
+        for i in $(seq 1 10); do
+            sleep 1
+            curl -sf http://localhost:11434/api/tags > /dev/null 2>&1 && \
+                echo "OK (pid=$(cat $OLLAMA_PID))" && break
+        done
+        if [ ! -f "$MODELS_READY" ]; then
+            echo "First boot — pulling Tier 1 models (background)..."
+            (
+                for model in $TIER1_MODELS; do
+                    echo "Pulling $model..." >> "$OLLAMA_LOG"
+                    "$OLLAMA_BIN" pull "$model" >> "$OLLAMA_LOG" 2>&1
+                done
+                touch "$MODELS_READY"
+                echo "Tier 1 models ready" >> "$OLLAMA_LOG"
+            ) &
+        fi ;;
+    stop)
+        echo -n "Stopping Ollama... "
+        [ -f "$OLLAMA_PID" ] && kill "$(cat $OLLAMA_PID)" 2>/dev/null && rm -f "$OLLAMA_PID"
+        echo "OK" ;;
+    restart) "$0" stop; sleep 2; "$0" start ;;
+    status)
+        [ -f "$OLLAMA_PID" ] && kill -0 "$(cat $OLLAMA_PID)" 2>/dev/null && \
+            echo "Ollama running" || { echo "not running"; exit 1; }
+        [ -f "$MODELS_READY" ] && echo "Models: ready" || echo "Models: pulling" ;;
+    *) echo "Usage: $0 {start|stop|restart|status}"; exit 1 ;;
+esac

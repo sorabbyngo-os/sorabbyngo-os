@@ -1,0 +1,6 @@
+config BR2_PACKAGE_SORABBYNGO_NATS
+	bool "sorabbyngo-nats"
+	help
+	  NATS server binary for Sorabbyngo OS.
+	  Pre-built amd64 binary from nats.io.
+	  All Sorabbyngo services communicate over NATS JetStream.

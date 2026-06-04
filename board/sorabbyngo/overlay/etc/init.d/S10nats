@@ -1,0 +1,29 @@
+#!/bin/sh
+# S10nats — Start NATS server
+NATS_BIN="/usr/bin/nats-server"
+NATS_CONF="/etc/sorabbyngo/nats/sorabbyngo.conf"
+NATS_PID="/var/run/nats-server.pid"
+NATS_LOG="/var/log/sorabbyngo/nats.log"
+mkdir -p /var/log/sorabbyngo /var/lib/sorabbyngo/nats
+
+case "$1" in
+    start)
+        echo -n "Starting NATS server... "
+        [ ! -x "$NATS_BIN" ] && echo "MISSING" && exit 1
+        "$NATS_BIN" -c "$NATS_CONF" -P "$NATS_PID" >> "$NATS_LOG" 2>&1 &
+        for i in 1 2 3; do
+            sleep 1
+            [ -f "$NATS_PID" ] && kill -0 "$(cat $NATS_PID)" 2>/dev/null && \
+                echo "OK (pid=$(cat $NATS_PID))" && exit 0
+        done
+        echo "FAILED — check $NATS_LOG"; exit 1 ;;
+    stop)
+        echo -n "Stopping NATS... "
+        [ -f "$NATS_PID" ] && kill "$(cat $NATS_PID)" 2>/dev/null && rm -f "$NATS_PID"
+        echo "OK" ;;
+    restart) "$0" stop; sleep 1; "$0" start ;;
+    status)
+        [ -f "$NATS_PID" ] && kill -0 "$(cat $NATS_PID)" 2>/dev/null && \
+            echo "NATS running (pid=$(cat $NATS_PID))" || { echo "not running"; exit 1; } ;;
+    *) echo "Usage: $0 {start|stop|restart|status}"; exit 1 ;;
+esac

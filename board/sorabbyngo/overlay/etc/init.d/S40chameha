@@ -1,0 +1,23 @@
+#!/bin/sh
+# S40chameha — Prepare Chameha environment (tty1 respawn via inittab)
+CHAMEHA_LOG="/var/log/sorabbyngo/chameha.log"
+CHAMEHA_READY="/var/lib/sorabbyngo/.chameha_ready"
+mkdir -p /var/log/sorabbyngo /var/lib/sorabbyngo
+
+case "$1" in
+    start)
+        echo -n "Preparing Chameha... "
+        touch "$CHAMEHA_READY"
+        NODE_ID=$(cat /var/lib/sorabbyngo/nodeid 2>/dev/null || echo "unknown")
+        echo "$(date -Iseconds) Chameha ready — NodeID: $NODE_ID" >> "$CHAMEHA_LOG"
+        echo "OK" ;;
+    stop)
+        echo -n "Stopping Chameha... "
+        rm -f "$CHAMEHA_READY"
+        pkill -f "chameha_firstboot.py" 2>/dev/null || true
+        echo "OK" ;;
+    restart) "$0" stop; sleep 1; "$0" start ;;
+    status)
+        [ -f "$CHAMEHA_READY" ] && echo "Chameha: ready" || { echo "not ready"; exit 1; } ;;
+    *) echo "Usage: $0 {start|stop|restart|status}"; exit 1 ;;
+esac
