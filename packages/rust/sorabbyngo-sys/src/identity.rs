@@ -1,35 +1,53 @@
 //! Hardware NodeID management for Sorabbyngo OS.
-
+//! Paths and fallback logic match C (libsorabbyngo) and Python bindings.
 use crate::error::{Result, SysError};
 use std::fs;
 use std::path::Path;
 
-const NODEID_PATH:  &str = "/var/lib/sorabbyngo/nodeid";
-const PROC_NODEID:  &str = "/proc/sorabbyngo/nodeid";
-const ENV_NODEID:   &str = "SORABBYNGO_NODE_ID";
+const NODEID_PATH: &str = "/var/lib/sorabbyngo/nodeid";
+const PROC_NODEID: &str = "/proc/sorabbyngo/nodeid";
+const ENV_NODEID:  &str = "SORABBYNGO_NODE_ID";
 
 pub struct NodeIdentity {
-    pub id: String,
+    pub id:     String,
+    pub source: NodeIdSource,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum NodeIdSource {
+    Sealed,    // /var/lib/sorabbyngo/nodeid
+    Env,       // SORABBYNGO_NODE_ID
+    Fallback,  // hostname-derived (dev only)
 }
 
 impl NodeIdentity {
-    /// Load NodeID from sealed storage, env var, or derive from hostname
-    pub fn load() -> Result<Self> {
-        let id = if Path::new(NODEID_PATH).exists() {
-            fs::read_to_string(NODEID_PATH)?.trim().to_string()
-        } else if let Ok(env_id) = std::env::var(ENV_NODEID) {
-            env_id
-        } else {
-            Self::derive_from_hostname()?
-        };
-        Ok(Self { id })
+    /// Load NodeID — fails hard if module not loaded and allow_fallback=false.
+    pub fn load(allow_fallback: bool) -> Result<Self> {
+        // 1. Sealed storage
+        if Path::new(NODEID_PATH).exists() {
+            let id = fs::read_to_string(NODEID_PATH)?.trim().to_string();
+            return Ok(Self { id, source: NodeIdSource::Sealed });
+        }
+        // 2. Environment override
+        if let Ok(env_id) = std::env::var(ENV_NODEID) {
+            return Ok(Self { id: env_id.trim().to_string(), source: NodeIdSource::Env });
+        }
+        // 3. Fallback — dev/CI only
+        if allow_fallback {
+            let id = Self::derive_from_hostname()?;
+            return Ok(Self { id, source: NodeIdSource::Fallback });
+        }
+        Err(SysError::NodeIdUnavailable)
     }
 
-    /// Verify live kernel NodeID against sealed NodeID
+    /// Verify live kernel NodeID against sealed NodeID.
     pub fn verify(&self) -> Result<bool> {
         let proc_path = Path::new(PROC_NODEID);
         if !proc_path.exists() {
-            return Ok(true); // Kernel module not loaded — skip
+            if self.source == NodeIdSource::Fallback {
+                return Ok(true);
+            }
+            return Err(SysError::KernelModuleNotLoaded("sorabbyngo_nodeid".into()));
         }
         let live = fs::read_to_string(proc_path)?.trim().to_string();
         if live != self.id {
@@ -41,13 +59,12 @@ impl NodeIdentity {
         Ok(true)
     }
 
-    /// Seal the NodeID to persistent storage
+    /// Seal to persistent storage (called from S05nodeid equivalent in Rust).
     pub fn seal(&self) -> Result<()> {
-        let path = Path::new(NODEID_PATH);
-        if let Some(parent) = path.parent() {
+        if let Some(parent) = Path::new(NODEID_PATH).parent() {
             fs::create_dir_all(parent)?;
         }
-        fs::write(path, &self.id)?;
+        fs::write(NODEID_PATH, &self.id)?;
         Ok(())
     }
 
@@ -55,17 +72,14 @@ impl NodeIdentity {
         &self.id[..self.id.len().min(12)]
     }
 
+    /// SHA-256(hostname) — matches Python and C fallback exactly.
     fn derive_from_hostname() -> Result<String> {
-        use std::collections::hash_map::DefaultHasher;
-        use std::hash::{Hash, Hasher};
-
+        use sha2::{Digest, Sha256};
         let hostname = hostname::get()
             .map(|h| h.to_string_lossy().to_string())
             .unwrap_or_else(|_| "sorabbyngo-node".to_string());
-
-        let mut hasher = DefaultHasher::new();
-        hostname.hash(&mut hasher);
-        Ok(format!("{:016x}", hasher.finish()))
+        let hash = Sha256::digest(hostname.as_bytes());
+        Ok(format!("{:x}", hash))
     }
 }
 
