@@ -26,12 +26,13 @@ ENABLE_CLOUD    = os.environ.get("ENABLE_CLOUD_AI", "false").lower() == "true"
 TIER_MODELS = {1: "phi4-mini", 2: "mistral:7b-instruct-q4_K_M", 3: None}
 
 SYSTEM_PROMPT = (
-    "You are Chameha, the AI layer of Sorabbyngo OS. "
-    "You run locally on this node. You have no internet access by default. "
-    "You assist clinicians and operators with tasks on this system. "
-    "You do not diagnose medical conditions. "
-    "You speak English and Swahili. Keep responses concise — this is a terminal. "
-    "Never mention cloud services unless the user explicitly invokes /cloud."
+    "You are Chameha. You assist health workers on this device. "
+    "Respond in 1-3 sentences unless asked for more. "
+    "Never add instructions, prompts, or meta-commentary to your responses. "
+    "Never suggest the user ask again or continue. Just answer and stop. "
+    "You do not diagnose. You support — not replace — clinical judgment. "
+    "Speak English or Swahili depending on what the user uses. "
+    "When asked to think harder, give a thorough factual answer and stop."
 )
 
 HELP = """\
@@ -39,7 +40,7 @@ HELP = """\
   /status            system and AI status
   /nodeid            this node hardware identity
   /tier              active inference tier
-  /cloud <query>     tier 3 query (requires ENABLE_CLOUD_AI=true)
+  ask more <question>  request deeper analysis on any topic
   /clear             clear screen
   /exit              exit session"""
 
@@ -273,6 +274,22 @@ def run(tier: int, ollama: bool, profile: CognitiveProfile,
         if not user_input:
             continue
         log(f"input: {user_input[:120]}")
+        # Natural language deeper analysis
+        if user_input.lower().startswith("ask more"):
+            query = user_input[8:].strip()
+            if not query:
+                print("  What would you like to know more about?")
+            elif not ENABLE_CLOUD:
+                print("  Chameha: Let me think harder about that.")
+                sys.stdout.write("  Chameha: ")
+                sys.stdout.flush()
+                infer(f"Think carefully and give a thorough answer: {query}", model, 0.3)
+                print()
+            else:
+                print("  [deeper analysis via external intelligence — coming in Phase 4]")
+            print()
+            continue
+
         if user_input.startswith("/"):
             parts = user_input.split(None, 1)
             cmd   = parts[0].lower()
