@@ -254,7 +254,7 @@ def run(tier: int, ollama: bool, profile: CognitiveProfile,
     if ollama and MODELS_READY.exists():
         sys.stdout.write("  Chameha: ")
         sys.stdout.flush()
-        infer("Ready. Introduce yourself in one sentence.", model, profile.temperature())
+        infer("Greet the user in one sentence. Do not ask a question.", model, 0.5)
     else:
         print("  Chameha: Ready.")
         if not ollama:
