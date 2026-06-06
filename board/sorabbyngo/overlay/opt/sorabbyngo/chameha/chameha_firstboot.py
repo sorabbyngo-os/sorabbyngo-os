@@ -2,38 +2,28 @@
 """
 chameha.py — Sorabbyngo AI OS
 Primary user interface. Runs as respawn on tty1 via inittab.
-ADR-009 compliant: tier-aware inference, cloud off by default.
-
-Tiers:
-  1 — Phi-4 Mini Q4    always-on, 2GB RAM minimum
-  2 — Mistral 7B Q4    auto when GPU detected
-  3 — External API     explicit /cloud <query> only, ENABLE_CLOUD_AI=true required
-
+ADR-009: tier-aware inference, cloud off by default.
 © 2026 Sorabbyngo Company. GPL-2.0.
 """
 from __future__ import annotations
-import json, os, signal, sys, time, threading, socket, sqlite3, hashlib, subprocess
+import datetime, json, os, signal, sys, time, threading, socket, sqlite3, hashlib, subprocess
 import urllib.error, urllib.request
-from datetime import datetime
 from pathlib import Path
 
-NODEID_PATH       = Path("/var/lib/sorabbyngo/nodeid")
-MODELS_READY      = Path("/var/lib/sorabbyngo/.ollama_models_ready")
-LOG_PATH          = Path("/var/log/sorabbyngo/chameha.log")
-_DB               = Path("/var/lib/sorabbyngo/chameha.db")
-CHAMEHA_DB        = _DB if _DB.parent.exists() else Path.home() / "chameha" / "chameha.db"
+NODEID_PATH   = Path("/var/lib/sorabbyngo/nodeid")
+MODELS_READY  = Path(os.environ.get("MODELS_READY", "/var/lib/sorabbyngo/.ollama_models_ready"))
+LOG_PATH      = Path("/var/log/sorabbyngo/chameha.log")
+_FALLBACK_LOG = Path.home() / "chameha" / "chameha.log"
+_DB           = Path("/var/lib/sorabbyngo/chameha.db")
+CHAMEHA_DB    = _DB if _DB.parent.exists() else Path.home() / "chameha" / "chameha.db"
 
-OLLAMA_BASE       = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-OLLAMA_GENERATE   = OLLAMA_BASE + "/api/generate"
-OLLAMA_TAGS       = OLLAMA_BASE + "/api/tags"
-NATS_URL          = os.environ.get("NATS_URL", "nats://localhost:4222")
-ENABLE_CLOUD      = os.environ.get("ENABLE_CLOUD_AI", "false").lower() == "true"
+OLLAMA_BASE     = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_GENERATE = OLLAMA_BASE + "/api/generate"
+OLLAMA_TAGS     = OLLAMA_BASE + "/api/tags"
+NATS_URL        = os.environ.get("NATS_URL", "nats://localhost:4222")
+ENABLE_CLOUD    = os.environ.get("ENABLE_CLOUD_AI", "false").lower() == "true"
 
-TIER_MODELS = {
-    1: "phi4-mini",
-    2: "mistral:7b-instruct-q4_K_M",
-    3: None,
-}
+TIER_MODELS = {1: "phi4-mini", 2: "mistral:7b-instruct-q4_K_M", 3: None}
 
 SYSTEM_PROMPT = (
     "You are Chameha, the AI layer of Sorabbyngo OS. "
@@ -53,10 +43,21 @@ HELP = """\
   /clear             clear screen
   /exit              exit session"""
 
+
+def _now() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
 def log(msg: str):
-    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(LOG_PATH, "a") as f:
-        f.write(f"{datetime.utcnow().isoformat()}Z  {msg}\n")
+    for path in (LOG_PATH, _FALLBACK_LOG):
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "a") as f:
+                f.write(f"{_now()}  {msg}\n")
+            return
+        except PermissionError:
+            continue
+
 
 def get_nodeid() -> str:
     try:
@@ -66,21 +67,20 @@ def get_nodeid() -> str:
             f"{os.uname().nodename}:{os.environ.get('USER', '')}".encode()
         ).hexdigest()
 
+
 def detect_tier() -> int:
-    try:
-        r = subprocess.run(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
-                           capture_output=True, timeout=3)
-        if r.returncode == 0 and r.stdout.strip():
-            return 2
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
-    try:
-        r = subprocess.run(["rocm-smi", "--showid"], capture_output=True, timeout=3)
-        if r.returncode == 0:
-            return 2
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
+    for cmd in (
+        ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+        ["rocm-smi", "--showid"],
+    ):
+        try:
+            r = subprocess.run(cmd, capture_output=True, timeout=3)
+            if r.returncode == 0 and r.stdout.strip():
+                return 2
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
     return 1
+
 
 def wait_for_ollama(timeout: int = 60) -> bool:
     sys.stdout.write("  Initialising local intelligence")
@@ -99,13 +99,17 @@ def wait_for_ollama(timeout: int = 60) -> bool:
     sys.stdout.write("\n")
     return False
 
+
 class NATSPublisher:
     def __init__(self, url: str):
         h, p = url.replace("nats://", "").split(":")
         self._host, self._port = h, int(p)
+
     def publish(self, subject: str, payload: dict):
-        threading.Thread(target=self._send,
-                         args=(subject, json.dumps(payload)), daemon=True).start()
+        threading.Thread(
+            target=self._send, args=(subject, json.dumps(payload)), daemon=True
+        ).start()
+
     def _send(self, subject: str, data: str):
         try:
             s = socket.create_connection((self._host, self._port), timeout=2.0)
@@ -114,6 +118,7 @@ class NATSPublisher:
             s.close()
         except Exception:
             pass
+
 
 class CognitiveProfile:
     def __init__(self, nodeid: str):
@@ -133,7 +138,8 @@ class CognitiveProfile:
                 PRIMARY KEY (nodeid, term)
             );
         """)
-        c.commit(); c.close()
+        c.commit()
+        c.close()
 
     def temperature(self) -> float:
         try:
@@ -143,7 +149,8 @@ class CognitiveProfile:
                 "ORDER BY ts DESC LIMIT 15", (self.nodeid,)
             ).fetchall()
             c.close()
-            if not rows: return 0.6
+            if not rows:
+                return 0.6
             avg = sum(r[0] for r in rows) / len(rows)
             return round(min(0.8, max(0.3, 0.3 + (avg / 30000) * 0.5)), 2)
         except Exception:
@@ -151,7 +158,7 @@ class CognitiveProfile:
 
     def record(self, inp: str, resp: str, dur: int, temp: float, tier: int):
         try:
-            c = sqlite3.connect(CHAMEHA_DB)
+            c   = sqlite3.connect(CHAMEHA_DB)
             now = int(time.time() * 1000)
             c.execute(
                 "INSERT INTO sessions(nodeid,ts,input,response,duration_ms,temperature,tier)"
@@ -166,39 +173,48 @@ class CognitiveProfile:
                         " frequency=frequency+1,last_seen=excluded.last_seen",
                         (self.nodeid, w, now)
                     )
-            c.commit(); c.close()
+            c.commit()
+            c.close()
         except Exception:
             pass
 
     def session_count(self) -> int:
         try:
             c = sqlite3.connect(CHAMEHA_DB)
-            n = c.execute("SELECT COUNT(*) FROM sessions WHERE nodeid=?",
-                          (self.nodeid,)).fetchone()[0]
-            c.close(); return n
+            n = c.execute(
+                "SELECT COUNT(*) FROM sessions WHERE nodeid=?", (self.nodeid,)
+            ).fetchone()[0]
+            c.close()
+            return n
         except Exception:
             return 0
 
+
 def infer(prompt: str, model: str, temperature: float) -> str:
     payload = json.dumps({
-        "model": model,
-        "prompt": f"{SYSTEM_PROMPT}\n\nUser: {prompt}\nChameha:",
-        "stream": True,
+        "model":   model,
+        "prompt":  f"{SYSTEM_PROMPT}\n\nUser: {prompt}\nChameha:",
+        "stream":  True,
         "options": {"temperature": temperature, "num_predict": 512},
     }).encode()
     full = []
     try:
-        req = urllib.request.Request(OLLAMA_GENERATE, data=payload,
-                                     headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            OLLAMA_GENERATE, data=payload,
+            headers={"Content-Type": "application/json"}
+        )
         with urllib.request.urlopen(req, timeout=90) as r:
             for line in r:
-                if not line.strip(): continue
+                if not line.strip():
+                    continue
                 try:
                     chunk = json.loads(line.decode())
-                    tok = chunk.get("response", "")
+                    tok   = chunk.get("response", "")
                     full.append(tok)
-                    sys.stdout.write(tok); sys.stdout.flush()
-                    if chunk.get("done"): break
+                    sys.stdout.write(tok)
+                    sys.stdout.flush()
+                    if chunk.get("done"):
+                        break
                 except json.JSONDecodeError:
                     continue
         print()
@@ -207,6 +223,7 @@ def infer(prompt: str, model: str, temperature: float) -> str:
     except Exception as e:
         print(f"  [error: {e}]")
     return "".join(full)
+
 
 def status_line(nodeid: str, tier: int, ollama: bool,
                 profile: CognitiveProfile) -> str:
@@ -225,6 +242,7 @@ def status_line(nodeid: str, tier: int, ollama: bool,
         f"  cloud     {'enabled (opt-in)' if ENABLE_CLOUD else 'off'}\n"
     )
 
+
 def run(tier: int, ollama: bool, profile: CognitiveProfile,
         nats: NATSPublisher, nodeid: str):
     model = TIER_MODELS.get(tier, "phi4-mini")
@@ -233,11 +251,13 @@ def run(tier: int, ollama: bool, profile: CognitiveProfile,
         "tier": tier, "model": model, "ts": int(time.time() * 1000),
     })
     if ollama and MODELS_READY.exists():
-        sys.stdout.write("  Chameha: "); sys.stdout.flush()
-        infer("Ready. One sentence.", model, profile.temperature())
+        sys.stdout.write("  Chameha: ")
+        sys.stdout.flush()
+        infer("Ready. Introduce yourself in one sentence.", model, profile.temperature())
     else:
         print("  Chameha: Ready.")
-        if not ollama: print("           Local inference unavailable.")
+        if not ollama:
+            print("           Local inference unavailable.")
     print()
 
     while True:
@@ -250,13 +270,14 @@ def run(tier: int, ollama: bool, profile: CognitiveProfile,
                 "ts": int(time.time() * 1000),
             })
             break
-        if not user_input: continue
+        if not user_input:
+            continue
         log(f"input: {user_input[:120]}")
         if user_input.startswith("/"):
             parts = user_input.split(None, 1)
             cmd   = parts[0].lower()
             arg   = parts[1] if len(parts) > 1 else ""
-            if cmd == "/exit": break
+            if   cmd == "/exit":   break
             elif cmd == "/help":   print(HELP)
             elif cmd == "/status": print(status_line(nodeid, tier, ollama, profile))
             elif cmd == "/nodeid": print(f"  {nodeid}")
@@ -269,13 +290,15 @@ def run(tier: int, ollama: bool, profile: CognitiveProfile,
                 else:
                     print("  [cloud tier not yet implemented]")
             elif cmd == "/clear":  os.system("clear")
-            else: print("  Unknown command. /help for list.")
+            else:                  print("  Unknown command. /help for list.")
             continue
         if not ollama:
-            print("  [inference offline]"); continue
+            print("  [inference offline]")
+            continue
         t0   = int(time.time() * 1000)
         temp = profile.temperature()
-        sys.stdout.write("  Chameha: "); sys.stdout.flush()
+        sys.stdout.write("  Chameha: ")
+        sys.stdout.flush()
         resp = infer(user_input, model, temp)
         dur  = int(time.time() * 1000) - t0
         profile.record(user_input, resp, dur, temp, tier)
@@ -284,6 +307,7 @@ def run(tier: int, ollama: bool, profile: CognitiveProfile,
             "tier": tier, "temp": temp, "ts": int(time.time() * 1000),
         })
         print()
+
 
 def main():
     signal.signal(signal.SIGTERM, lambda s, f: sys.exit(0))
@@ -299,6 +323,7 @@ def main():
     except Exception as e:
         log(f"fatal: {e}")
         time.sleep(3)
+
 
 if __name__ == "__main__":
     main()
