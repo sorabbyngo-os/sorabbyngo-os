@@ -34,12 +34,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("sentinel")
 
-BANNER = """
-╔══════════════════════════════════════════════════════════╗
-║       Sorabbyngo Sentinel — System Watchdog              ║
-║       Rhythm of Digital Life                             ║
-╚══════════════════════════════════════════════════════════╝
-"""
 
 NODEID_PATH = Path("/var/lib/sorabbyngo/nodeid")
 PROC_NODEID = Path("/proc/sorabbyngo/nodeid")
@@ -302,7 +296,6 @@ class SentinelDaemon:
 
     async def start(self):
         self._running = True
-        print(BANNER)
         logger.info(f"Sentinel starting — NodeID: {self.node_id}")
         self._verify_node_id()
         ok, count = self.ledger.verify()

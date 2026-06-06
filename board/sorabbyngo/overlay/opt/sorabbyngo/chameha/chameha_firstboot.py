@@ -319,6 +319,16 @@ def run(tier: int, ollama: bool, profile: CognitiveProfile,
         resp = infer(user_input, model, temp)
         dur  = int(time.time() * 1000) - t0
         profile.record(user_input, resp, dur, temp, tier)
+        nats.publish("sorabbyngo.chameha.heartbeat", {
+            "service": "chameha",
+            "nodeid":  nodeid[:16],
+            "ts":      int(time.time() * 1000),
+        })
+        nats.publish("sorabbyngo.chameha.heartbeat", {
+            "service": "chameha",
+            "nodeid":  nodeid[:16],
+            "ts":      int(time.time() * 1000),
+        })
         nats.publish("sorabbyngo.chameha.transcript", {
             "nodeid": nodeid[:16], "dur_ms": dur,
             "tier": tier, "temp": temp, "ts": int(time.time() * 1000),
