@@ -17,8 +17,6 @@
  */
 
 #define _POSIX_C_SOURCE 200809L
-#define _POSIX_C_SOURCE 200809L
-#define _POSIX_C_SOURCE 200809L
 #include "libsorabbyngo/ai.h"
 #include "libsorabbyngo/identity.h"
 
@@ -296,7 +294,7 @@ static void test_async_inference(void)
     /* Wait up to 30s for callback */
     int waited = 0;
     while (!g_async_done && waited < 300) {
-        sleep(1); /* 100ms */
+        usleep(100000); /* 100ms */
         waited++;
     }
 
