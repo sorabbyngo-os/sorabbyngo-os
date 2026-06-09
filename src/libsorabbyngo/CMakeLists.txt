@@ -24,6 +24,7 @@ set(LIB_SOURCES
     src/msg.c
     src/ai.c
     src/memory.c
+    src/sec.c
 )
 
 set(LIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -84,3 +85,8 @@ add_executable(test_memory tests/test_memory.c)
 target_include_directories(test_memory PRIVATE ${LIB_INCLUDE_DIR} ${SODIUM_INCLUDE_DIRS} ${NATS_INCLUDE_DIRS} ${CURL_INCLUDE_DIRS})
 target_link_libraries(test_memory sorabbyngo_static ${SODIUM_LIBRARIES} ${NATS_LIBRARIES} ${CURL_LIBRARIES} pthread)
 add_test(NAME memory COMMAND test_memory)
+
+add_executable(test_sec tests/test_sec.c)
+target_include_directories(test_sec PRIVATE ${LIB_INCLUDE_DIR} ${SODIUM_INCLUDE_DIRS} ${NATS_INCLUDE_DIRS} ${CURL_INCLUDE_DIRS})
+target_link_libraries(test_sec sorabbyngo_static ${SODIUM_LIBRARIES} ${NATS_LIBRARIES} ${CURL_LIBRARIES} pthread)
+add_test(NAME sec COMMAND test_sec)
