@@ -72,3 +72,4 @@ BR2_TARGET_ROOTFS_ISO9660_HYBRID=y
 BR2_TARGET_GRUB2=y
 BR2_TARGET_GRUB2_X86_64_EFI=y
 BR2_TARGET_GRUB2_BUILTIN_MODULES="boot linux ext2 fat serial part_msdos part_gpt normal iso9660 gzio"
+# BR2_LEGACY is not set

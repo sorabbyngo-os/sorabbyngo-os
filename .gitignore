@@ -12,3 +12,6 @@ __pycache__/
 *.pyo
 sorabbyngo-os/
 src/libsorabbyngo/build/
+sorabbyngo-output/
+.config/
+*.blob
