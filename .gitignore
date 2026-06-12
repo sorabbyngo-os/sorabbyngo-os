@@ -15,3 +15,6 @@ src/libsorabbyngo/build/
 sorabbyngo-output/
 .config/
 *.blob
+linux-6.19.tar.xz
+linux-6.19/
+src/byngoshell/target/

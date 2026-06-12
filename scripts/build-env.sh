@@ -4,10 +4,10 @@ set -e
 SORAB_HOME="${SORAB_HOME:-$HOME}"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-KERNEL_TARBALL="${SORAB_HOME}/sorabbyngo-patches/../rootfs/dl/linux/linux-6.19.10-sorabbyngo.tar.gz"
+KERNEL_TARBALL="${SORAB_HOME}/sorabbyngo-output/dl/linux/linux-6.19.10-sorabbyngo.tar.gz"
 # Allow override
-KERNEL_TARBALL="${SORABBYNGO_KERNEL_TARBALL_PATH:-$SORAB_HOME/sorabbyngo-patches/../rootfs/dl/linux/linux-6.19.10-sorabbyngo.tar.gz}"
-KERNEL_CONFIG="${SORABBYNGO_KERNEL_CONFIG_PATH:-$SORAB_HOME/sorabbyngo-patches/sorabbyngo_full.config}"
+KERNEL_TARBALL="${SORABBYNGO_KERNEL_TARBALL_PATH:-$SORAB_HOME/sorabbyngo-output/dl/linux/linux-6.19.10-sorabbyngo.tar.gz}"
+KERNEL_CONFIG="${SORABBYNGO_KERNEL_CONFIG_PATH:-$SORAB_HOME/sorabbyngo-patches/sorabbyngo.config}"
 
 [ -f "$KERNEL_TARBALL" ] && echo "[OK]  Kernel tarball: $KERNEL_TARBALL" || \
     echo "[WARN] Kernel tarball not found: $KERNEL_TARBALL"
@@ -27,3 +27,7 @@ echo ""
 echo "Ready. Run:"
 echo "  make -C ~/buildroot O=\$SORABBYNGO_OUTPUT BR2_EXTERNAL=\$BR2_EXTERNAL sorabbyngo_x86_64_defconfig"
 echo "  make -C ~/buildroot O=\$SORABBYNGO_OUTPUT -j\$(nproc)"
+
+set +e  # restore shell default after sourcing
+
+set +e  # restore shell default after sourcing
