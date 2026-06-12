@@ -1,0 +1,65 @@
+# ByngoShell — Swahili language pack
+# lang/sw.toml
+
+[shell]
+prompt_suffix     = "❯"
+welcome           = "ByngoShell — Mfumo wa Sorabbyngo OS"
+tagline           = "Mfumo wa AI wa Afrika"
+goodbye           = "Kipindi kimefungwa. Sorabbyngo inabaki."
+unknown_cmd       = "Amri haijulikani: '{cmd}'. Andika 'help' kuona amri zilizopo."
+hint_help         = "Andika 'help' kuanza."
+
+[errors]
+nodeid_unavail    = "NodeID haipatikani — moduli ya kernel haijapakiwa"
+nats_offline      = "NATS haipatikani — endesha 'sb_health' kuangalia hali"
+ollama_offline    = "AI ya ndani iko nje ya mtandao — anzisha Ollama au angalia 'sb_health'"
+permission_denied = "Ruhusa imekataliwa"
+not_found         = "Haipatikani: {item}"
+
+[builtins]
+# sb_id
+id_title          = "Utambulisho wa Nodi"
+id_nodeid         = "NodeID"
+id_short          = "Kitambulisho Kifupi"
+id_source         = "Chanzo"
+id_pubkey         = "Ufunguo wa Umma"
+id_mesh           = "Hali ya Mesh"
+id_source_kernel  = "kernel (/proc/sorabbyngo/nodeid)"
+id_source_user    = "nafasi ya mtumiaji (CPU + MAC)"
+id_mesh_online    = "mtandaoni"
+id_mesh_offline   = "haijasajiliwa"
+
+# sb_health
+health_title      = "Afya ya Mfumo"
+health_kernel     = "Kernel"
+health_nats       = "NATS"
+health_ollama     = "Ollama"
+health_tier1      = "Kiwango 1 (CPU ya ndani)"
+health_tier2      = "Kiwango 2 (GPU ya ndani)"
+health_mesh       = "Mesh"
+health_online     = "mtandaoni"
+health_offline    = "nje ya mtandao"
+health_ready      = "tayari"
+health_not_ready  = "haijawa tayari"
+
+# sb_ask
+ask_thinking      = "Chameha: "
+ask_offline       = "Akili ya ndani iko nje ya mtandao. Anzisha Ollama kuwezesha."
+ask_cloud_blocked = "AI ya wingu imezuiwa (ENABLE_CLOUD_AI=false)"
+
+# sb_policy
+policy_result     = "Uamuzi wa sera"
+policy_allow      = "RUHUSU"
+policy_deny       = "KATAA"
+policy_audit      = "KAGUA"
+
+# sb_send / sb_listen
+send_ok           = "Imechapishwa kwa {subject}"
+send_fail         = "Kuchapisha kumeshindwa — NATS iko nje ya mtandao"
+listen_start      = "Inasikiliza {subject} (Ctrl+C kusimama)..."
+listen_msg        = "[{subject}] {payload}"
+
+# sb_net
+net_title         = "Mtandao wa Byngonet"
+net_peers         = "Marafiki waliounganishwa"
+net_no_peers      = "Hakuna marafiki waliounganishwa"

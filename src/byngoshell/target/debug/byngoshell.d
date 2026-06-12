@@ -1,0 +1,1 @@
+/home/sorabbyngo/sorabbyngo-os/src/byngoshell/target/debug/byngoshell: /home/sorabbyngo/sorabbyngo-os/src/byngoshell/lang/en.toml /home/sorabbyngo/sorabbyngo-os/src/byngoshell/lang/sw.toml /home/sorabbyngo/sorabbyngo-os/src/byngoshell/src/builtins.rs /home/sorabbyngo/sorabbyngo-os/src/byngoshell/src/config.rs /home/sorabbyngo/sorabbyngo-os/src/byngoshell/src/main.rs

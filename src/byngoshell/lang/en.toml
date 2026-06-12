@@ -1,0 +1,65 @@
+# ByngoShell — English language pack
+# lang/en.toml
+
+[shell]
+prompt_suffix     = "❯"
+welcome           = "ByngoShell — Sorabbyngo OS"
+tagline           = "Africa-first AI Operating System"
+goodbye           = "Session closed. Sorabbyngo remains."
+unknown_cmd       = "Unknown command: '{cmd}'. Type 'help' for available commands."
+hint_help         = "Type 'help' to get started."
+
+[errors]
+nodeid_unavail    = "NodeID unavailable — kernel module not loaded"
+nats_offline      = "NATS not available — run 'sb_health' for status"
+ollama_offline    = "Local AI offline — start Ollama or check 'sb_health'"
+permission_denied = "Permission denied"
+not_found         = "Not found: {item}"
+
+[builtins]
+# sb_id
+id_title          = "Node Identity"
+id_nodeid         = "NodeID"
+id_short          = "Short ID"
+id_source         = "Source"
+id_pubkey         = "Public Key"
+id_mesh           = "Mesh Status"
+id_source_kernel  = "kernel (/proc/sorabbyngo/nodeid)"
+id_source_user    = "userspace (CPU + MAC)"
+id_mesh_online    = "online"
+id_mesh_offline   = "not registered"
+
+# sb_health
+health_title      = "System Health"
+health_kernel     = "Kernel"
+health_nats       = "NATS"
+health_ollama     = "Ollama"
+health_tier1      = "Tier 1 (local CPU)"
+health_tier2      = "Tier 2 (local GPU)"
+health_mesh       = "Mesh"
+health_online     = "online"
+health_offline    = "offline"
+health_ready      = "ready"
+health_not_ready  = "not ready"
+
+# sb_ask
+ask_thinking      = "Chameha: "
+ask_offline       = "Local intelligence offline. Start Ollama to enable."
+ask_cloud_blocked = "Cloud AI disabled (ENABLE_CLOUD_AI=false)"
+
+# sb_policy
+policy_result     = "Policy decision"
+policy_allow      = "ALLOW"
+policy_deny       = "DENY"
+policy_audit      = "AUDIT"
+
+# sb_send / sb_listen
+send_ok           = "Published to {subject}"
+send_fail         = "Publish failed — NATS offline"
+listen_start      = "Listening on {subject} (Ctrl+C to stop)..."
+listen_msg        = "[{subject}] {payload}"
+
+# sb_net
+net_title         = "Byngonet Mesh"
+net_peers         = "Connected peers"
+net_no_peers      = "No peers connected"
