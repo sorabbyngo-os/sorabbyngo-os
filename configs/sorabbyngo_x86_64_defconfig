@@ -12,7 +12,7 @@ BR2_LINUX_KERNEL=y
 BR2_LINUX_KERNEL_CUSTOM_TARBALL=y
 BR2_LINUX_KERNEL_CUSTOM_TARBALL_LOCATION="file:///build/output/dl/linux/linux-6.19.10-sorabbyngo.tar.gz"
 BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
-BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="/build/patches/sorabbyngo.config"
+BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="/build/sorabbyngo-patches/sorabbyngo.config"
 BR2_LINUX_KERNEL_NEEDS_HOST_OPENSSL=y
 
 # Init system
@@ -57,9 +57,9 @@ BR2_PACKAGE_PCIUTILS=y
 BR2_PACKAGE_USBUTILS=y
 
 # Rootfs
-BR2_ROOTFS_OVERLAY="board/sorabbyngo/overlay"
-BR2_ROOTFS_POST_BUILD_SCRIPT="board/sorabbyngo/post-build.sh"
-BR2_ROOTFS_POST_IMAGE_SCRIPT="board/sorabbyngo/post-image.sh"
+BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL_SORABBYNGO_PATH)/board/sorabbyngo/overlay"
+BR2_ROOTFS_POST_BUILD_SCRIPT="$(BR2_EXTERNAL_SORABBYNGO_PATH)/board/sorabbyngo/post-build.sh"
+BR2_ROOTFS_POST_IMAGE_SCRIPT="$(BR2_EXTERNAL_SORABBYNGO_PATH)/board/sorabbyngo/post-image.sh"
 
 # Output formats
 BR2_TARGET_ROOTFS_EXT2=y
