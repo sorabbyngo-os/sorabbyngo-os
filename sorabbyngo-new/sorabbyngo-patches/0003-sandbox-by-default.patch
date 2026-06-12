@@ -1,0 +1,50 @@
+diff --git a/security/sorabbyngo/sandbox_default.c b/security/sorabbyngo/sandbox_default.c
+new file mode 100644
+--- /dev/null
++++ b/security/sorabbyngo/sandbox_default.c
+@@ -0,0 +1,60 @@
++// SPDX-License-Identifier: GPL-2.0
++// Sorabbyngo — sandbox-by-default (Subgraph model)
++// Every process starts in a restricted namespace.
++// Capabilities must be granted by capd before meaningful work.
++#include <linux/lsm_hooks.h>
++#include <linux/sched.h>
++#include <linux/nsproxy.h>
++#include <linux/pid_namespace.h>
++
++// Processes in this set are exempt (kernel threads, init, capd itself)
++#define SORABBYNGO_EXEMPT_COMM "capd\0init\0kthreadd"
++
++static bool is_exempt(struct task_struct *t)
++{
++	return (t->pid <= 2) || !strncmp(t->comm, "capd", 4);
++}
++
++// bprm_check_security: called on every execve
++// Marks the new process as sandbox-pending until capd grants tokens
++static int sandbox_bprm_check(struct linux_binprm *bprm)
++{
++	if (is_exempt(current))
++		return 0;
++	// Set a flag in the task's security blob — capd clears it
++	// when tokens are installed via /proc/<pid>/cap_tokens
++	current->sorabbyngo_sandboxed = 1;
++	return 0;
++}
++
++static struct security_hook_list sandbox_hooks[] __lsm_ro_after_init = {
++	LSM_HOOK_INIT(bprm_check_security, sandbox_bprm_check),
++};
++
++static int __init sandbox_default_init(void)
++{
++	security_add_hooks(sandbox_hooks, ARRAY_SIZE(sandbox_hooks),
++			   "sandbox_default");
++	pr_info("sorabbyngo: sandbox-by-default loaded\n");
++	return 0;
++}
++
++DEFINE_LSM(sandbox_default) = {
++	.name = "sandbox_default",
++	.init = sandbox_default_init,
++};
