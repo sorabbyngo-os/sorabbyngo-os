@@ -9,6 +9,6 @@ tmpfs               /dev/shm          tmpfs     noexec,nosuid,nodev,size=64m   0
 tmpfs               /run              tmpfs     noexec,nosuid,nodev,size=32m   0      0
 # Persistent sorabbyngo state — survives reboots
 # /dev/sda2 is the data partition (sda1 = rootfs, sda2 = persistent)
-/dev/sda2           /var/lib/sorabbyngo ext4    defaults,noatime               0      2
+#/dev/sda2           /var/lib/sorabbyngo ext4    defaults,noatime               0      2
 # Audit log — persistent, append-only mount
-/dev/sda2           /var/log/sorabbyngo ext4    defaults,noatime,noexec        0      2
+#/dev/sda2           /var/log/sorabbyngo ext4    defaults,noatime,noexec        0      2

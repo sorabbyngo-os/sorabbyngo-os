@@ -1,0 +1,6 @@
+--- a/security/sorabbyngo/cap_token_lsm.c
++++ b/security/sorabbyngo/cap_token_lsm.c
+@@ -0,0 +1,3 @@
++// Capability Token LSM — Sorabbyngo OS
++// Full implementation in cap_token_impl.c
++#include "cap_token_impl.c"
