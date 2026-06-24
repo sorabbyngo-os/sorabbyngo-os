@@ -1,7 +1,14 @@
 #!/bin/sh
 # Sorabbyngo OS — SysV init dispatcher
-# Runs all S* scripts in /etc/init.d/ in order
 
+# Mount essential filesystems first
+mount -t proc proc /proc 2>/dev/null || true
+mount -t sysfs sysfs /sys 2>/dev/null || true
+mount -t devtmpfs devtmpfs /dev 2>/dev/null || true
+mkdir -p /dev/pts
+mount -t devpts devpts /dev/pts 2>/dev/null || true
+
+# Run all S* init scripts in order
 for script in /etc/init.d/S[0-9][0-9]*; do
     [ -x "$script" ] || continue
     echo "[sorabbyngo] Starting: $(basename $script)"
