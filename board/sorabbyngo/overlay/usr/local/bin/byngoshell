@@ -1,0 +1,6 @@
+#!/bin/sh
+# Byngoshell — Sorabbyngo AI shell interface
+# Placeholder until byngox is integrated
+echo "Sorabbyngo OS — Byngoshell"
+echo "Byngox agent shell coming in Phase 2"
+exec /bin/sh

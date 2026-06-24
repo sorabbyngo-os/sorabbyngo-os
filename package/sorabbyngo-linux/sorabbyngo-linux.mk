@@ -8,7 +8,7 @@ SORABBYNGO_LINUX_SITE_METHOD   = wget
 SORABBYNGO_LINUX_LICENSE       = GPL-2.0
 SORABBYNGO_LINUX_LICENSE_FILES = COPYING
 
-SORABBYNGO_PATCHES_DIR = $(BR2_EXTERNAL_SORABBYNGO_PATH)/patches
+SORABBYNGO_PATCHES_DIR = $(BR2_EXTERNAL_SORABBYNGO_PATH)/../sorabbyngo-patches
 
 define SORABBYNGO_LINUX_CONFIGURE_CMDS
 	@echo "==> Applying Sorabbyngo security patches..."
@@ -26,6 +26,9 @@ define SORABBYNGO_LINUX_CONFIGURE_CMDS
 	cp $(SORABBYNGO_PATCHES_DIR)/sorabbyngo.config $(@D)/.config
 	$(MAKE) -C $(@D) ARCH=x86_64 \
 		CROSS_COMPILE=$(TARGET_CROSS) olddefconfig
+	@echo "==> Verifying key configs..."
+	grep "CONFIG_SERIAL_8250=y" $(@D)/.config || echo "WARN: SERIAL_8250 missing"
+	grep "CONFIG_ATA_PIIX=y" $(@D)/.config || echo "WARN: ATA_PIIX missing"
 endef
 
 define SORABBYNGO_LINUX_BUILD_CMDS
