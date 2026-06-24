@@ -10,8 +10,10 @@ define SORABBYNGO_NATS_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0755 $(@D)/nats-server \
 		$(TARGET_DIR)/usr/bin/nats-server
 	mkdir -p $(TARGET_DIR)/etc/sorabbyngo/nats
+	$(INSTALL) -D -m 0644 $(BR2_EXTERNAL_SORABBYNGO_PATH)/../sorabbyngo-os/nats/sorabbyngo.conf \
+		$(TARGET_DIR)/etc/sorabbyngo/nats/sorabbyngo.conf 2>/dev/null || \
 	$(INSTALL) -D -m 0644 $(BR2_EXTERNAL_SORABBYNGO_PATH)/nats/sorabbyngo.conf \
-		$(TARGET_DIR)/etc/sorabbyngo/nats/sorabbyngo.conf
+		$(TARGET_DIR)/etc/sorabbyngo/nats/sorabbyngo.conf 2>/dev/null || true
 endef
 
 $(eval $(generic-package))

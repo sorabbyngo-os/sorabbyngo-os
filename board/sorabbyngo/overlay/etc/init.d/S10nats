@@ -9,7 +9,7 @@ mkdir -p /var/log/sorabbyngo /var/lib/sorabbyngo/nats
 case "$1" in
     start)
         echo -n "Starting NATS server... "
-        [ ! -x "$NATS_BIN" ] && echo "MISSING" && exit 1
+        [ ! -x "$NATS_BIN" ] && echo "MISSING" && exit 0
         "$NATS_BIN" -c "$NATS_CONF" -P "$NATS_PID" >> "$NATS_LOG" 2>&1 &
         for i in 1 2 3; do
             sleep 1

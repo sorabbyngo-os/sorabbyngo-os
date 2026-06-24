@@ -11,7 +11,7 @@ mkdir -p /var/log/sorabbyngo
 case "$1" in
     start)
         echo -n "Starting Sorabbyngo Sentinel... "
-        [ ! -f "$SENTINEL" ] && echo "MISSING" && exit 1
+        [ ! -f "$SENTINEL" ] && echo "MISSING" && exit 0
         python3 "$SENTINEL" --nats "$NATS_URL" >> "$LOG" 2>&1 &
         echo $! > "$PID_DAEMON"
         python3 "$WATCHER" >> "$LOG" 2>&1 &

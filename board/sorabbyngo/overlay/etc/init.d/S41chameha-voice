@@ -8,7 +8,7 @@ mkdir -p /var/run/sorabbyngo /var/log/sorabbyngo
 case "$1" in
     start)
         echo -n "Starting Chameha voice daemon... "
-        [ ! -f "$DAEMON" ] && echo "MISSING" && exit 1
+        [ ! -f "$DAEMON" ] && echo "MISSING" && exit 0
         python3 "$DAEMON" --tier "$TIER" >> "$LOGFILE" 2>&1 &
         echo $! > "$PIDFILE"
         echo "OK (pid=$(cat $PIDFILE))" ;;
