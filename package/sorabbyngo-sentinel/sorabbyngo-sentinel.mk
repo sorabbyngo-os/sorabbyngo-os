@@ -2,7 +2,7 @@
 # sorabbyngo-sentinel
 ################################################################################
 SORABBYNGO_SENTINEL_VERSION     = 1.0.0
-SORABBYNGO_SENTINEL_SITE        = $(BR2_EXTERNAL_SORABBYNGO_PATH)/../sentinel
+SORABBYNGO_SENTINEL_SITE        = $(BR2_EXTERNAL_SORABBYNGO_PATH)/sentinel
 SORABBYNGO_SENTINEL_SITE_METHOD = local
 
 define SORABBYNGO_SENTINEL_INSTALL_TARGET_CMDS
