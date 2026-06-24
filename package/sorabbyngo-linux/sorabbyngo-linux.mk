@@ -22,6 +22,12 @@ define SORABBYNGO_LINUX_CONFIGURE_CMDS
 	mkdir -p $(@D)/drivers/sorabbyngo
 	cp -r $(SORABBYNGO_PATCHES_DIR)/drivers/sorabbyngo/. \
 		$(@D)/drivers/sorabbyngo/
+	@echo "==> Wiring drivers into kernel build system..."
+	grep -q "sorabbyngo" $(@D)/drivers/Kconfig || \
+		sed -i '/^endmenu/i source "drivers/sorabbyngo/Kconfig"' \
+		$(@D)/drivers/Kconfig
+	grep -q "sorabbyngo" $(@D)/drivers/Makefile || \
+		echo 'obj-y += sorabbyngo/' >> $(@D)/drivers/Makefile
 	@echo "==> Applying kernel config..."
 	cp $(SORABBYNGO_PATCHES_DIR)/sorabbyngo.config $(@D)/.config
 	$(MAKE) -C $(@D) ARCH=x86_64 \
@@ -29,6 +35,7 @@ define SORABBYNGO_LINUX_CONFIGURE_CMDS
 	@echo "==> Verifying key configs..."
 	grep "CONFIG_SERIAL_8250=y" $(@D)/.config || echo "WARN: SERIAL_8250 missing"
 	grep "CONFIG_ATA_PIIX=y" $(@D)/.config || echo "WARN: ATA_PIIX missing"
+	grep "CONFIG_SORABBYNGO_NODEID" $(@D)/.config || echo "WARN: NODEID missing"
 endef
 
 define SORABBYNGO_LINUX_BUILD_CMDS
